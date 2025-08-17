@@ -11,21 +11,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Baixar o código
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Configurar Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # 3️⃣ Instalar dependências
       - name: Install dependencies
         run: npm install
 
+      # 4️⃣ Rodar a aplicação
+      - name: Start app
+        run: npm start &
+      
+      # 5️⃣ Esperar a aplicação subir (ajuste a porta se necessário)
+      - name: Wait for app
+        uses: jakejarvis/wait-on-action@v1
+        with:
+          url: 'http://localhost:3000'
+
+      # 6️⃣ Rodar os testes Cypress
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
         with:
-          build: npm run build
-          start: npm start
-          wait-on: 'http://localhost:3000'
           browser: chrome
+
+      # 7️⃣ Upload de screenshots se houver falha
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+
+      # 8️⃣ Upload de vídeos se houver falha
+      - name: Upload Cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-videos
+          path: cypress/videos
